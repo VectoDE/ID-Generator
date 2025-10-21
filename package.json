@@ -1,0 +1,36 @@
+{
+  "name": "id-generator",
+  "version": "1.0.0",
+  "description": "Configurable enterprise-grade identifier generation toolkit for Node.js.",
+  "type": "commonjs",
+  "main": "index.js",
+  "bin": {
+    "id-generator": "./bin/id-generator.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "examples",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "start": "node ./bin/id-generator.js",
+    "example": "node ./examples/basicUsage.js",
+    "check": "find src -name '*.js' -print0 | xargs -0 -n1 node --check"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "id",
+    "identifier",
+    "generator",
+    "enterprise",
+    "toolkit"
+  ],
+  "author": "",
+  "license": "BSD-3-Clause"
+}
