@@ -1,7 +1,7 @@
 # ID Generator
 
 [![CI](https://github.com/VectoDE/ID-Generator/actions/workflows/ci.yml/badge.svg)](https://github.com/VectoDE/ID-Generator/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@vectode/id-generator)](https://www.npmjs.com/package/@vectode/id-generator)
+[![Release](https://img.shields.io/github/v/release/VectoDE/ID-Generator?label=release)](https://github.com/VectoDE/ID-Generator/releases/latest)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/VectoDE/ID-Generator/badge)](https://scorecard.dev/viewer/?uri=github.com/VectoDE/ID-Generator)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 
