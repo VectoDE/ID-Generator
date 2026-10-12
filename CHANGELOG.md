@@ -5,6 +5,29 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- Every GitHub release has the package tarball and its signed build attestation (Sigstore, SLSA provenance)
+  attached; the same tarball is published to npm with provenance. The security policy explains how to verify it.
+- Commits in pull requests must be signed off under the Developer Certificate of Origin, checked by a new workflow.
+- Each GitHub release also carries a CycloneDX software bill of materials.
+- Version tags are protected: only the release workflow can create them, and it only publishes commits on `main`.
+- Release commits and version tags are signed (SSH), so GitHub shows them as verified.
+- The release keys are secrets of a GitHub environment that only `main` can use.
+- The security policy states how long versions get security updates and how secrets are handled.
+
+### Added
+
+- Documentation for the OpenSSF Best Practices badge (passing): architecture, security assurance case, roadmap,
+  governance, coding standards and the security response process.
+- README badge for OpenSSF Best Practices.
+
+### Changed
+
+- Development dependencies are pinned to exact versions.
+- The code is type checked with TypeScript 7 as well as TypeScript 6. TypeScript 6 stays for linting, because
+  typescript-eslint needs the compiler API that TypeScript 7 no longer ships.
+
 ## [2.0.2] - 2026-10-12
 
 ### Security
