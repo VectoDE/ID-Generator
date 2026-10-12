@@ -84,8 +84,9 @@ release notes. There are no such statements today.
 - The project keeps as few secrets as possible. npm publishing uses OIDC Trusted Publishing, and workflows use the
   short-lived `GITHUB_TOKEN`; neither is stored anywhere.
 - The only stored secrets are two SSH keys for the release commit: `RELEASE_DEPLOY_KEY` pushes it past the main
-  ruleset, and `RELEASE_SIGNING_KEY` signs the commit and the version tag. They live only in GitHub Actions secrets,
-  are used by one job that runs no dependency code, and no person keeps a copy.
+  ruleset, and `RELEASE_SIGNING_KEY` signs the commit and the version tag. They are secrets of the GitHub environment
+  `release`, which only `main` can use, so workflows on other branches never see them. One job that runs no
+  dependency code uses them, and no person keeps a copy.
 - Secrets are never committed, logged or passed on the command line. gitleaks in CI and GitHub secret scanning with
   push protection block leaks.
 - Secrets are rotated once a year, when a maintainer with access leaves, and immediately on any suspicion of

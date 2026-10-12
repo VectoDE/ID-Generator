@@ -41,10 +41,10 @@ used as secrets; the README and the security policy say so.
 - **Economy of mechanism:** no runtime dependencies; the core is plain TypeScript over Web Crypto.
 - **Fail-safe defaults:** invalid input throws typed errors instead of producing a partial ID; a sequence number is
   only used after the whole ID is valid.
-- **Least privilege:** the core needs no file or network access; file access is only in the separate `node` entry.
-  CI jobs get read-only tokens unless a step needs more, and the deploy key that pushes release commits is only
-  available to a job that runs no dependency code. Version tags can only be created by that workflow, and it only
-  publishes tags that point to commits on the protected `main` branch.
+- **Least privilege:** the core needs no file or network access; file access is only in the separate `node` entry. CI
+  jobs get read-only tokens unless a step needs more, and the keys that push and sign release commits are secrets of an
+  environment that only `main` can use, read by one job that runs no dependency code. Version tags can only be created
+  by that workflow, and it only publishes tags that point to commits on the protected `main` branch.
 - **Complete mediation:** every public function validates its arguments at runtime, also for callers without
   TypeScript.
 - **Open design:** all code, tests and the release process are public; security does not rely on hidden details.

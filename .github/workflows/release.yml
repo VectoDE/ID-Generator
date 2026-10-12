@@ -121,6 +121,7 @@ jobs:
     if: needs.prepare.outputs.release == 'true' && inputs.bump != 'publish' && inputs.bump != 'attach'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: release # holds both release keys; only main can use it
     permissions:
       contents: read # the push uses the deploy key, not this token
     outputs:

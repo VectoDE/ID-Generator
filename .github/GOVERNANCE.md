@@ -32,15 +32,15 @@ See "Releases" in the [contributing guide](CONTRIBUTING.md#releases).
 
 ## Access to sensitive resources
 
-| Resource                                                 | Who has access                                                                                               |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| GitHub repository settings, rulesets and secrets         | [@VectoDE](https://github.com/VectoDE) (owner)                                                               |
-| Merging into `main`                                      | [@VectoDE](https://github.com/VectoDE), through pull requests only                                           |
-| Release deploy key (`RELEASE_DEPLOY_KEY`)                | The release workflow only; no person holds the private key                                                   |
-| Release signing key (`RELEASE_SIGNING_KEY`)              | The release workflow only; registered as a signing key on the maintainer account                             |
-| npm package `@vectode/id-generator` and the scope        | [@VectoDE](https://github.com/VectoDE) on npmjs.com (2FA); releases are published through Trusted Publishing |
-| Security advisories                                      | [@VectoDE](https://github.com/VectoDE)                                                                       |
-| SonarQube Cloud project and OpenSSF Best Practices entry | [@VectoDE](https://github.com/VectoDE)                                                                       |
+| Resource                                                 | Who has access                                                                                                     |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| GitHub repository settings, rulesets and secrets         | [@VectoDE](https://github.com/VectoDE) (owner)                                                                     |
+| Merging into `main`                                      | [@VectoDE](https://github.com/VectoDE), through pull requests only                                                 |
+| Release deploy key (`RELEASE_DEPLOY_KEY`)                | The release workflow on `main` only (environment `release`); no person holds the private key                       |
+| Release signing key (`RELEASE_SIGNING_KEY`)              | The release workflow on `main` only (environment `release`); registered as a signing key on the maintainer account |
+| npm package `@vectode/id-generator` and the scope        | [@VectoDE](https://github.com/VectoDE) on npmjs.com (2FA); releases are published through Trusted Publishing       |
+| Security advisories                                      | [@VectoDE](https://github.com/VectoDE)                                                                             |
+| SonarQube Cloud project and OpenSSF Best Practices entry | [@VectoDE](https://github.com/VectoDE)                                                                             |
 
 The list is updated in the same pull request that grants or removes access.
 
