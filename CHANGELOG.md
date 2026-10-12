@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-10-12
+
 ### Security
 
 - Date formats in `{date:...}` are checked in linear time. The old check could backtrack exponentially on long formats
@@ -76,6 +78,7 @@ A rewrite, released on GitHub only. See "Upgrading from 1.x" in the README.
 
 First version, not published to npm.
 
-[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/VectoDE/ID-Generator/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/VectoDE/ID-Generator/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/VectoDE/ID-Generator/releases/tag/v2.0.0
