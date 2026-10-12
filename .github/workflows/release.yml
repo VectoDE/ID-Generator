@@ -1,13 +1,14 @@
 # Every push to main becomes a release: the version is raised (scripts/prepare-release.mjs), the release commit and
-# tag go to main, and the package is published as a GitHub release, to npm through Trusted Publishing with
-# provenance, and to GitHub Packages. Commits with "[skip release]" in the message are left out, and so is the
-# release commit itself.
+# tag go to main, and the package is built once, signed with a build attestation and published as a GitHub release
+# (tarball and attestation attached), to npm through Trusted Publishing with provenance, and to GitHub Packages.
+# Commits with "[skip release]" in the message are left out, and so is the release commit itself.
 #
 # The deploy key that may push past the main ruleset is only handed to the "Commit and tag" job, which runs no
 # dependency code: it applies the version change prepared and checked in an earlier job without the key.
 #
-# Run it by hand to pick the version step, or with "publish" to publish the current version again where it is
-# missing (for example after a registry outage). Every step skips what already exists, so a rerun is safe.
+# Run it by hand to pick the version step, with "publish" to publish an existing tag again where it is missing (for
+# example after a registry outage), or with "attach" to only add the signed tarball to an existing GitHub release.
+# Every step skips what already exists, so a rerun is safe.
 name: Release
 
 on:
@@ -18,8 +19,12 @@ on:
       bump:
         description: Version step
         type: choice
-        options: [auto, patch, minor, major, publish]
+        options: [auto, patch, minor, major, publish, attach]
         default: auto
+      tag:
+        description: Existing tag for publish and attach (default the version in package.json)
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -71,17 +76,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BUMP: ${{ inputs.bump || 'auto' }}
+          TAG: ${{ inputs.tag }}
           RELEASE_NOTES: ${{ runner.temp }}/release/notes.md
         run: |
           mkdir -p "$RUNNER_TEMP/release"
-          if [ "$BUMP" = "publish" ]; then
-            version="$(node -p "require('./package.json').version")"
-            git rev-parse --verify --quiet "refs/tags/v$version" > /dev/null
-            git tag --list "v$version" --format='%(contents)' > "$RELEASE_NOTES"
-            printf 'release=true\nversion=%s\ntag=v%s\n' "$version" "$version" | tee -a "$GITHUB_OUTPUT"
-          else
-            RELEASE_BUMP="$BUMP" node scripts/prepare-release.mjs
-          fi
+          case "$BUMP" in
+            publish | attach)
+              tag="${TAG:-v$(node -p "require('./package.json').version")}"
+              if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] ||
+                ! git rev-parse --verify --quiet "refs/tags/$tag" > /dev/null; then
+                echo "::error::$tag is not an existing version tag."
+                exit 1
+              fi
+              git tag --list "$tag" --format='%(contents)' > "$RELEASE_NOTES"
+              printf 'release=true\nversion=%s\ntag=%s\n' "${tag#v}" "$tag" | tee -a "$GITHUB_OUTPUT"
+              ;;
+            *) RELEASE_BUMP="$BUMP" node scripts/prepare-release.mjs ;;
+          esac
           git diff --binary > "$RUNNER_TEMP/release/version.patch"
       # Saved before any dependency code runs, so nothing installed below can change what gets committed.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -91,7 +102,7 @@ jobs:
           path: ${{ runner.temp }}/release/
           retention-days: 7
       - name: Check the release
-        if: steps.version.outputs.release == 'true' && inputs.bump != 'publish'
+        if: steps.version.outputs.release == 'true' && inputs.bump != 'publish' && inputs.bump != 'attach'
         run: |
           npm ci --ignore-scripts
           npm run check
@@ -99,7 +110,7 @@ jobs:
   commit:
     name: Commit and tag
     needs: prepare
-    if: needs.prepare.outputs.release == 'true' && inputs.bump != 'publish'
+    if: needs.prepare.outputs.release == 'true' && inputs.bump != 'publish' && inputs.bump != 'attach'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -135,14 +146,61 @@ jobs:
           git tag --annotate "$TAG" --file "$RUNNER_TEMP/release/notes.md" --cleanup=verbatim
           git push --atomic origin HEAD:main "$TAG"
 
-  github:
-    name: GitHub release
+  package:
+    name: Build and sign the package
     needs: [prepare, commit]
     if: always() && needs.prepare.outputs.release == 'true' && contains(fromJSON('["success", "skipped"]'), needs.commit.result)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write # GitHub release
+      contents: read
+      id-token: write # Sigstore signature for the build attestation
+      attestations: write # stores the attestation with the repository
+    outputs:
+      tarball: ${{ steps.pack.outputs.tarball }}
+    steps:
+      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Pack
+        id: pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/package"
+          npm pack --pack-destination "$RUNNER_TEMP/package"
+          tarball="$(cd "$RUNNER_TEMP/package" && ls -- *.tgz)"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        id: attest
+        with:
+          subject-path: ${{ runner.temp }}/package/${{ steps.pack.outputs.tarball }}
+      - name: Keep the attestation next to the tarball
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: cp "$BUNDLE" "$RUNNER_TEMP/package/$TARBALL.intoto.jsonl"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: ${{ runner.temp }}/package/
+          retention-days: 7
+
+  github:
+    name: GitHub release
+    needs: [prepare, package]
+    if: always() && needs.package.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # GitHub release and its assets
     steps:
       - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -151,24 +209,29 @@ jobs:
         with:
           name: release
           path: ${{ runner.temp }}/release
-      - name: Create the release
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: ${{ runner.temp }}/package
+      - name: Create the release or add the signed package
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.prepare.outputs.tag }}
         run: |
+          assets=("$RUNNER_TEMP"/package/*)
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            echo "$TAG already has a GitHub release."
+            gh release upload "$TAG" "${assets[@]}" -R "$GITHUB_REPOSITORY" --clobber
             exit 0
           fi
           prerelease=""
           case "$TAG" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" \
+          gh release create "$TAG" "${assets[@]}" -R "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" \
             --notes-file "$RUNNER_TEMP/release/notes.md" $prerelease
 
   npm:
     name: Publish to npm
-    needs: [prepare, commit]
-    if: always() && needs.prepare.outputs.release == 'true' && contains(fromJSON('["success", "skipped"]'), needs.commit.result)
+    needs: [prepare, package]
+    if: always() && needs.package.result == 'success' && inputs.bump != 'attach'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm
@@ -179,34 +242,38 @@ jobs:
       - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          ref: ${{ needs.prepare.outputs.tag }}
-          persist-credentials: false
+          name: package
+          path: ${{ runner.temp }}/package
       # Node 24 ships npm 11, which Trusted Publishing needs.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - name: Publish
+      - name: Publish the signed tarball
         env:
-          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          TARBALL: ${{ needs.package.outputs.tarball }}
         run: |
-          name="$(node -p "require('./package.json').name")"
-          if [ -n "$(npm view "$name@${TAG#v}" version 2> /dev/null)" ]; then
-            echo "$name@${TAG#v} is already on npm."
+          if [ -n "$(npm view "@vectode/id-generator@$VERSION" version 2> /dev/null)" ]; then
+            echo "@vectode/id-generator@$VERSION is already on npm."
             exit 0
           fi
+          # Prereleases go to "next", and an older version published again must not take "latest" back.
+          latest="$(npm view @vectode/id-generator dist-tags.latest 2> /dev/null || true)"
           dist_tag=latest
-          case "$TAG" in *-*) dist_tag=next ;; esac
-          npm publish --provenance --access public --tag "$dist_tag"
+          case "$VERSION" in *-*) dist_tag=next ;; esac
+          newest="$(printf '%s\n' "$latest" "$VERSION" | sort -V | tail -n1)"
+          if [ -n "$latest" ] && [ "$newest" != "$VERSION" ]; then
+            dist_tag=previous
+          fi
+          npm publish "$RUNNER_TEMP/package/$TARBALL" --provenance --access public --tag "$dist_tag"
 
   github-packages:
     name: Publish to GitHub Packages
-    needs: [prepare, commit]
-    if: always() && needs.prepare.outputs.release == 'true' && contains(fromJSON('["success", "skipped"]'), needs.commit.result)
+    needs: [prepare, package]
+    if: always() && needs.package.result == 'success' && inputs.bump != 'attach'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -216,28 +283,27 @@ jobs:
       - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          ref: ${{ needs.prepare.outputs.tag }}
-          persist-credentials: false
+          name: package
+          path: ${{ runner.temp }}/package
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           registry-url: https://npm.pkg.github.com
           scope: '@vectode'
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - name: Publish
+      - name: Publish the signed tarball
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          TARBALL: ${{ needs.package.outputs.tarball }}
         run: |
-          name="$(node -p "require('./package.json').name")"
-          if [ -n "$(npm view "$name@${TAG#v}" version --registry https://npm.pkg.github.com 2> /dev/null)" ]; then
-            echo "$name@${TAG#v} is already on GitHub Packages."
+          registry=https://npm.pkg.github.com
+          if [ -n "$(npm view "@vectode/id-generator@$VERSION" version --registry "$registry" 2> /dev/null)" ]; then
+            echo "@vectode/id-generator@$VERSION is already on GitHub Packages."
             exit 0
           fi
           dist_tag=latest
-          case "$TAG" in *-*) dist_tag=next ;; esac
+          case "$VERSION" in *-*) dist_tag=next ;; esac
           # GitHub Packages does not take npm provenance statements.
-          npm publish --registry https://npm.pkg.github.com --provenance=false --tag "$dist_tag"
+          npm publish "$RUNNER_TEMP/package/$TARBALL" --registry "$registry" --provenance=false --tag "$dist_tag"

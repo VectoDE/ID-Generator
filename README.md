@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/VectoDE/ID-Generator/actions/workflows/ci.yml/badge.svg)](https://github.com/VectoDE/ID-Generator/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@vectode/id-generator)](https://www.npmjs.com/package/@vectode/id-generator)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15415/badge)](https://www.bestpractices.dev/projects/15415)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/VectoDE/ID-Generator/badge)](https://scorecard.dev/viewer/?uri=github.com/VectoDE/ID-Generator)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=VectoDE_ID-Generator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VectoDE_ID-Generator)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
@@ -347,7 +348,11 @@ preset.
 ## Contributing and security
 
 See [CONTRIBUTING](.github/CONTRIBUTING.md). Report vulnerabilities privately as described in the
-[security policy](.github/SECURITY.md). Questions go to [Discussions](https://github.com/VectoDE/ID-Generator/discussions).
+[security policy](.github/SECURITY.md), which also explains how to verify a release. Questions go to
+[Discussions](https://github.com/VectoDE/ID-Generator/discussions).
+
+More about the project: [architecture](docs/ARCHITECTURE.md), [security assurance case](docs/ASSURANCE.md),
+[roadmap](docs/ROADMAP.md) and [governance](.github/GOVERNANCE.md).
 
 ## License
 

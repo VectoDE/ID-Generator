@@ -42,18 +42,35 @@ Node.js 22 or newer is required (`.nvmrc` pins 22).
 3. Document public API with TSDoc and in the README; add an entry under "Unreleased" in `CHANGELOG.md`.
 4. Run `npm run check`.
 
+## Coding standards
+
+CI enforces all of these; `npm run check` runs the same checks locally.
+
+- TypeScript in strict mode with `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` and `noImplicitOverride`.
+- ESLint with typescript-eslint `strictTypeChecked` and `stylisticTypeChecked` plus `eslint-plugin-sonarjs`. No
+  warnings are allowed (`--max-warnings 0`), and rules are only switched off in `eslint.config.js` with a comment
+  that says why.
+- Prettier formats every file; do not format by hand.
+- Public functions validate their arguments at runtime and throw `IdGeneratorError` subclasses with a `code`.
+- Comments explain why, not what. Exported API has TSDoc.
+- Coverage stays above the thresholds in `vitest.config.ts`.
+
 ## Commits and pull requests
 
 - Write commit messages in English, imperative mood, and explain why: `Keep seq unused when a value fails`.
+- Sign off every commit (`git commit -s`). The sign-off certifies the
+  [Developer Certificate of Origin](https://developercertificate.org/): you wrote the change or have the right to
+  submit it under the project's license. A check on every pull request rejects commits without a matching
+  `Signed-off-by` line.
 - One topic per pull request. Fill in the template.
 - The package has no runtime dependencies. Keep it that way unless there is a strong reason.
 - CI must be green before review.
 
 ## Releases
 
-Every change merged into `main` is released on its own once CI passes: `.github/workflows/release.yml` raises the
+Every change merged into `main` is released on its own: `.github/workflows/release.yml` checks it again, raises the
 version, moves the "Unreleased" notes into a new `CHANGELOG.md` section, tags the release commit and publishes the
-package as a GitHub release, to npm with provenance and to GitHub Packages.
+package as a GitHub release with a signed build attestation, to npm with provenance and to GitHub Packages.
 
 - The version step comes from the pull request labels: `breaking-change` makes a major release, `enhancement` a minor
   one, anything else a patch. Without a pull request, `BREAKING CHANGE` in a commit message or a `feat:` subject do

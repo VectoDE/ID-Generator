@@ -5,6 +5,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- Every GitHub release has the package tarball and its signed build attestation (Sigstore, SLSA provenance)
+  attached; the same tarball is published to npm with provenance. The security policy explains how to verify it.
+- Commits in pull requests must be signed off under the Developer Certificate of Origin, checked by a new workflow.
+
+### Added
+
+- Documentation for the OpenSSF Best Practices badge (passing): architecture, security assurance case, roadmap,
+  governance, coding standards and the security response process.
+- README badge for OpenSSF Best Practices.
+
 ## [2.0.2] - 2026-10-12
 
 ### Security
