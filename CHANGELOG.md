@@ -13,6 +13,7 @@ All notable changes to this project are documented here. The format follows
 - Each GitHub release also carries a CycloneDX software bill of materials.
 - Version tags are protected: only the release workflow can create them, and it only publishes commits on `main`.
 - Release commits and version tags are signed (SSH), so GitHub shows them as verified.
+- The release keys are secrets of a GitHub environment that only `main` can use.
 - The security policy states how long versions get security updates and how secrets are handled.
 
 ### Added
@@ -24,6 +25,8 @@ All notable changes to this project are documented here. The format follows
 ### Changed
 
 - Development dependencies are pinned to exact versions.
+- The code is type checked with TypeScript 7 as well as TypeScript 6. TypeScript 6 stays for linting, because
+  typescript-eslint needs the compiler API that TypeScript 7 no longer ships.
 
 ## [2.0.2] - 2026-10-12
 

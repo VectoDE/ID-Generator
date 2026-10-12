@@ -61,7 +61,7 @@
     "check:package": "publint --strict && attw --pack .",
     "build:playground": "node scripts/build-playground.mjs",
     "dev:playground": "node scripts/build-playground.mjs --serve",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && node node_modules/typescript-7/bin/tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -93,6 +93,7 @@
     "publint": "0.3.25",
     "tsdown": "0.23.1",
     "typescript": "6.0.3",
+    "typescript-7": "npm:typescript@7.0.2",
     "typescript-eslint": "8.71.1",
     "vitest": "5.0.4"
   }

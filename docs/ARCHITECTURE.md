@@ -68,6 +68,6 @@ values outside the alphabet, so every character is equally likely.
 
 ## Quality gates
 
-Every pull request runs lint (typescript-eslint strict type-checked, sonarjs), Prettier, `tsc --noEmit`, Vitest with
-coverage thresholds, property-based fuzzing, the build, package checks, smoke tests on Deno and Bun, CodeQL,
-SonarQube Cloud, dependency review, OSV-Scanner and a secret scan. See `.github/workflows/`.
+Every pull request runs lint (typescript-eslint strict type-checked, sonarjs), Prettier, `tsc --noEmit` with TypeScript
+6 and 7, Vitest with coverage thresholds, property-based fuzzing, the build, package checks, smoke tests on Deno and
+Bun, CodeQL, SonarQube Cloud, dependency review, OSV-Scanner and a secret scan. See `.github/workflows/`.
