@@ -7,6 +7,13 @@ updates:
       day: monday
     open-pull-requests-limit: 10
     labels: [dependencies]
+    ignore:
+      # The types must match the oldest supported Node.js (engines: >=22), or code could use newer APIs.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
+      # typescript-eslint does not support TypeScript 7 yet. Tracked in an issue.
+      - dependency-name: typescript
+        versions: ['>=7']
     groups:
       development:
         dependency-type: development
