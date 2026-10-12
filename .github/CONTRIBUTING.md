@@ -55,6 +55,18 @@ CI enforces all of these; `npm run check` runs the same checks locally.
 - Comments explain why, not what. Exported API has TSDoc.
 - Coverage stays above the thresholds in `vitest.config.ts`.
 
+## Dependencies
+
+- **Runtime:** none. The package only uses Web Crypto and standard JavaScript, and a runtime dependency needs an issue
+  that explains why it cannot be avoided.
+- **Development:** chosen for being widely used, actively maintained, permissively licensed and published with npm
+  provenance where available. Added with `npm install -D --save-exact`, so versions are exact, and locked with
+  integrity hashes in `package-lock.json`. CI installs only with `npm ci --ignore-scripts`.
+- **GitHub Actions:** pinned to a full commit SHA with the version in a comment.
+- **Tracking:** Dependabot opens weekly update pull requests for npm and Actions (patch and minor ones merge on their
+  own once every check passes) and security updates as soon as an advisory appears. Dependency review, OSV-Scanner
+  and `npm audit` check every pull request.
+
 ## Commits and pull requests
 
 - Write commit messages in English, imperative mood, and explain why: `Keep seq unused when a value fails`.

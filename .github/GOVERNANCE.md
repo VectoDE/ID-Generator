@@ -24,8 +24,21 @@ request that adds them to this file and to [CODEOWNERS](CODEOWNERS).
 
 Every change merged into `main` is released by the [release workflow](workflows/release.yml), which publishes to
 GitHub, npm and GitHub Packages with signed provenance. Nobody publishes from a laptop, and version tags can only
-be created by that workflow: a tag ruleset blocks everyone else, and the workflow only publishes tags on `main`. See "Releases" in the
-[contributing guide](CONTRIBUTING.md#releases).
+be created by that workflow: a tag ruleset blocks everyone else, and the workflow only publishes tags on `main`.
+See "Releases" in the [contributing guide](CONTRIBUTING.md#releases).
+
+## Access to sensitive resources
+
+| Resource                                                 | Who has access                                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| GitHub repository settings, rulesets and secrets         | [@VectoDE](https://github.com/VectoDE) (owner)                                                               |
+| Merging into `main`                                      | [@VectoDE](https://github.com/VectoDE), through pull requests only                                           |
+| Release deploy key (`RELEASE_DEPLOY_KEY`)                | The release workflow only; no person holds the private key                                                   |
+| npm package `@vectode/id-generator` and the scope        | [@VectoDE](https://github.com/VectoDE) on npmjs.com (2FA); releases are published through Trusted Publishing |
+| Security advisories                                      | [@VectoDE](https://github.com/VectoDE)                                                                       |
+| SonarQube Cloud project and OpenSSF Best Practices entry | [@VectoDE](https://github.com/VectoDE)                                                                       |
+
+The list is updated in the same pull request that grants or removes access.
 
 ## Continuity
 
