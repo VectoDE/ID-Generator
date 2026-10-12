@@ -26,7 +26,8 @@ interface StoreFile {
 // A Map in memory, so scope names like "__proto__" are ordinary keys.
 type Counters = Map<string, number>;
 
-const RETRYABLE_RENAME = new Set(['EPERM', 'EBUSY', 'EACCES']);
+// Windows reports these for a moment while another process renames or deletes the file.
+const TRANSIENT = new Set(['EPERM', 'EBUSY', 'EACCES']);
 // On Windows a lock file that another process is deleting cannot be opened for a moment; that means "locked".
 const BUSY_LOCK = process.platform === 'win32' ? new Set(['EEXIST', 'EPERM', 'EBUSY', 'EACCES']) : new Set(['EEXIST']);
 
@@ -55,6 +56,19 @@ const readIfExists = async (path: string): Promise<string | undefined> => {
       return undefined;
     }
     throw error;
+  }
+};
+
+// Runs a file operation again after a short wait while it fails with a transient error.
+const retryTransient = async <T>(operation: () => Promise<T>, attemptsLeft = 5): Promise<T> => {
+  try {
+    return await operation();
+  } catch (error) {
+    if (attemptsLeft <= 1 || !TRANSIENT.has(errorCode(error) ?? '')) {
+      throw error;
+    }
+    await sleep(20);
+    return retryTransient(operation, attemptsLeft - 1);
   }
 };
 
@@ -169,7 +183,7 @@ export class FileSequenceStore implements SequenceStore {
 
   // Removes the lock only while it still carries this token; a lock taken over by another process stays.
   async #releaseLock(token: string): Promise<void> {
-    if ((await readIfExists(this.#lockPath)) === token) {
+    if ((await this.#readLock()) === token) {
       await rm(this.#lockPath, { force: true });
     }
   }
@@ -185,6 +199,10 @@ export class FileSequenceStore implements SequenceStore {
       // The lock vanished between the failed open and stat: just try again.
       if (errorCode(error) === 'ENOENT') {
         return true;
+      }
+      // Another process is deleting it right now (Windows): wait like for any held lock.
+      if (TRANSIENT.has(errorCode(error) ?? '')) {
+        return false;
       }
       throw error;
     }
@@ -227,6 +245,10 @@ export class FileSequenceStore implements SequenceStore {
     }
   }
 
+  #readLock(): Promise<string | undefined> {
+    return retryTransient(() => readIfExists(this.#lockPath));
+  }
+
   async #read(): Promise<Counters> {
     const text = await readIfExists(this.path);
     if (text === undefined) {
@@ -257,7 +279,7 @@ export class FileSequenceStore implements SequenceStore {
       } finally {
         await handle.close();
       }
-      if ((await readIfExists(this.#lockPath)) !== token) {
+      if ((await this.#readLock()) !== token) {
         throw new IdGeneratorError(
           'STORE_LOCKED',
           `Lost the lock on ${this.path} while updating it; nothing was saved.`,
@@ -266,23 +288,11 @@ export class FileSequenceStore implements SequenceStore {
           }
         );
       }
-      await this.#replace(temporary, 5);
+      // Windows refuses a rename while another process reads the target; such errors pass after a short wait.
+      await retryTransient(() => rename(temporary, this.path));
     } catch (error) {
       await rm(temporary, { force: true });
       throw error;
-    }
-  }
-
-  // Windows refuses a rename while another process reads the target; such errors pass after a short wait.
-  async #replace(temporary: string, attemptsLeft: number): Promise<void> {
-    try {
-      await rename(temporary, this.path);
-    } catch (error) {
-      if (attemptsLeft <= 1 || !RETRYABLE_RENAME.has(errorCode(error) ?? '')) {
-        throw error;
-      }
-      await sleep(20);
-      await this.#replace(temporary, attemptsLeft - 1);
     }
   }
 }

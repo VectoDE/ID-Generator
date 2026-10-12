@@ -92,6 +92,40 @@ describe('FileSequenceStore lock races', () => {
     expect(await store.next('a')).toBe(1);
   });
 
+  it('reads its own lock again when Windows refuses it for a moment', async () => {
+    const store = new FileSequenceStore({ path });
+    let refused = 0;
+    vi.mocked(fs.readFile).mockImplementation(async (file, options) => {
+      // The first lock read is the ownership check right before writing.
+      if (file === lock && refused === 0) {
+        refused += 1;
+        throw Object.assign(new Error('pending delete'), { code: 'EPERM' });
+      }
+      return actual.readFile(file, options as never);
+    });
+    expect(await store.next('a')).toBe(1);
+    expect(refused).toBe(1);
+    expect(await readdir(directory)).toEqual(['state.json']);
+  });
+
+  it('waits while another process is deleting the lock', async () => {
+    await writeFile(lock, 'other-owner');
+    let refused = 0;
+    vi.mocked(fs.readFile).mockImplementation(async (file, options) => {
+      if (file === lock && refused < 2) {
+        refused += 1;
+        if (refused === 2) {
+          // The other process finishes deleting its lock.
+          await actual.rm(lock);
+        }
+        throw Object.assign(new Error('pending delete'), { code: 'EPERM' });
+      }
+      return actual.readFile(file, options as never);
+    });
+    expect(await new FileSequenceStore({ path }).next('a')).toBe(1);
+    expect(refused).toBe(2);
+  });
+
   it('gives up after repeated rename failures and cleans up', async () => {
     const store = new FileSequenceStore({ path });
     vi.mocked(fs.rename).mockRejectedValue(Object.assign(new Error('busy'), { code: 'EBUSY' }));

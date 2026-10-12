@@ -7,7 +7,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [2.0.1] - 2026-10-12
 
-First version on npm, as `@vectode/id-generator`. The library and CLI behave exactly as in 2.0.0.
+First version on npm, as `@vectode/id-generator`.
+
+### Fixed
+
+- `FileSequenceStore` on Windows no longer fails with `EPERM` when it reads the lock file while another process is
+  deleting it. It waits and tries again, as it already did for a busy rename.
 
 ### Changed
 
