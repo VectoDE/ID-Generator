@@ -5,6 +5,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- Date formats in `{date:...}` are checked in linear time. The old check could backtrack exponentially on long formats
+  such as `YYYYYYYY...Q` (CodeQL `js/redos`).
+
+### Added
+
+- Property-based tests with fast-check that fuzz the pattern parser, date formats, `inspectId()` and the round trips
+  of generated IDs.
+- Every change merged into `main` is released automatically to GitHub, npm (with provenance) and GitHub Packages. See
+  "Releases" in the contributing guide.
+
+### Changed
+
+- The CI package test unpacks the tarball instead of running `npm install`, so no unpinned install runs in CI.
+
 ## [2.0.1] - 2026-10-12
 
 First version on npm, as `@vectode/id-generator`.

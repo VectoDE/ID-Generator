@@ -89,12 +89,16 @@ jobs:
       - name: Package works when installed
         run: |
           npm pack --pack-destination "$RUNNER_TEMP"
-          mkdir "$RUNNER_TEMP/consumer" && cd "$RUNNER_TEMP/consumer"
-          npm init -y > /dev/null
-          npm install "$RUNNER_TEMP"/vectode-id-generator-*.tgz
+          # Unpacked the way npm installs it; the package has no runtime dependencies, so nothing else is fetched.
+          package="$RUNNER_TEMP/consumer/node_modules/@vectode/id-generator"
+          mkdir -p "$package" && cd "$RUNNER_TEMP/consumer"
+          tar -xzf "$RUNNER_TEMP"/vectode-id-generator-*.tgz -C "$package" --strip-components=1
+          echo '{ "name": "consumer", "private": true }' > package.json
           node --input-type=module -e "import { uuidv7 } from '@vectode/id-generator'; console.log(uuidv7())"
           node -e "const { FileSequenceStore } = require('@vectode/id-generator/node'); console.log(typeof FileSequenceStore)"
-          npx --no-install idgen ulid
+          for bin in $(node -p "Object.values(require('@vectode/id-generator/package.json').bin).join(' ')"); do
+            node "$package/$bin" ulid
+          done
       - run: node scripts/smoke.mjs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

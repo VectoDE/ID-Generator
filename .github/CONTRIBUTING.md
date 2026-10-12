@@ -49,6 +49,18 @@ Node.js 22 or newer is required (`.nvmrc` pins 22).
 - The package has no runtime dependencies. Keep it that way unless there is a strong reason.
 - CI must be green before review.
 
+## Releases
+
+Every change merged into `main` is released on its own once CI passes: `.github/workflows/release.yml` raises the
+version, moves the "Unreleased" notes into a new `CHANGELOG.md` section, tags the release commit and publishes the
+package as a GitHub release, to npm with provenance and to GitHub Packages.
+
+- The version step comes from the pull request labels: `breaking-change` makes a major release, `enhancement` a minor
+  one, anything else a patch. Without a pull request, `BREAKING CHANGE` in a commit message or a `feat:` subject do
+  the same.
+- Put `[skip release]` in a commit message to leave it out, for example for a typo in the README.
+- To choose the step yourself, run the Release workflow by hand.
+
 ## License
 
 By contributing you agree that your contribution is licensed under the [BSD 3-Clause License](../LICENSE).
