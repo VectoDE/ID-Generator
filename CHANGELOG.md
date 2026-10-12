@@ -10,12 +10,19 @@ All notable changes to this project are documented here. The format follows
 - Every GitHub release has the package tarball and its signed build attestation (Sigstore, SLSA provenance)
   attached; the same tarball is published to npm with provenance. The security policy explains how to verify it.
 - Commits in pull requests must be signed off under the Developer Certificate of Origin, checked by a new workflow.
+- Each GitHub release also carries a CycloneDX software bill of materials.
+- Version tags are protected: only the release workflow can create them, and it only publishes commits on `main`.
+- The security policy states how long versions get security updates and how secrets are handled.
 
 ### Added
 
 - Documentation for the OpenSSF Best Practices badge (passing): architecture, security assurance case, roadmap,
   governance, coding standards and the security response process.
 - README badge for OpenSSF Best Practices.
+
+### Changed
+
+- Development dependencies are pinned to exact versions.
 
 ## [2.0.2] - 2026-10-12
 

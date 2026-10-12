@@ -40,6 +40,11 @@ See "Releases" in the [contributing guide](CONTRIBUTING.md#releases).
 
 The list is updated in the same pull request that grants or removes access.
 
+Before anyone gets more than read access (write or maintain rights, secrets, the npm package, security advisories),
+the maintainers review their record: at least three merged pull requests of good quality, constructive behaviour in
+issues and reviews, and two-factor authentication on GitHub and npm. The decision is recorded in that pull request.
+Rights are given at the lowest level that does the job, and removed when no longer needed.
+
 ## Continuity
 
 The project must keep working if a maintainer can no longer act:
