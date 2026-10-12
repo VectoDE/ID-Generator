@@ -54,6 +54,14 @@ describe('date formatting', () => {
   it('rejects unknown letters', () => {
     expect(() => assertDateFormat('YYYY-Q')).toThrow(/Unsupported date format/);
     expect(() => assertDateFormat('')).toThrow(/Unsupported/);
+    expect(() => assertDateFormat('YYY')).toThrow(/Unsupported/);
+    expect(assertDateFormat('YYYYYY.SSS')).toBe('YYYYYY.SSS');
+  });
+
+  it('checks long formats in linear time', () => {
+    const started = performance.now();
+    expect(() => assertDateFormat(`${'YYYY'.repeat(50_000)}!Q`)).toThrow(/Unsupported/);
+    expect(performance.now() - started).toBeLessThan(1000);
   });
 
   it('builds a matcher for the same format', () => {

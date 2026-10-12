@@ -2,7 +2,7 @@ import { ConfigurationError } from '../errors.js';
 import { escapeRegExp } from './regex.js';
 
 const FORMAT_PARTS = /YYYY|YY|MM|DD|HH|mm|ss|SSS/g;
-const ALLOWED_FORMAT = /^(?:YYYY|YY|MM|DD|HH|mm|ss|SSS|[^A-Za-z])+$/;
+const LETTER = /[A-Za-z]/;
 
 const pad = (value: number, length: number): string => String(value).padStart(length, '0');
 
@@ -29,7 +29,8 @@ const fields = (date: Date, utc: boolean) =>
 
 /** Rejects formats with letters other than the supported placeholders, so typos do not end up in IDs. */
 export const assertDateFormat = (format: string): string => {
-  if (!ALLOWED_FORMAT.test(format)) {
+  // Placeholders are removed first and the rest is searched for letters: linear time for any input.
+  if (format.length === 0 || LETTER.test(format.replaceAll(FORMAT_PARTS, ''))) {
     throw new ConfigurationError(
       'INVALID_PATTERN',
       `Unsupported date format "${format}". Use YYYY, YY, MM, DD, HH, mm, ss, SSS and separators.`,

@@ -1,65 +1,124 @@
-# A pushed version tag (v2.0.0, v2.1.0-rc.1, ...) is checked, becomes a GitHub release with notes grouped by label
-# (.github/release.yml) and, once npm Trusted Publishing is set up, is published to npm with provenance.
+# Every push to main whose CI passes becomes a release: the version is raised (scripts/prepare-release.mjs), the
+# release commit and tag go to main, and the package is published as a GitHub release, to npm through Trusted
+# Publishing with provenance, and to GitHub Packages. Commits with "[skip release]" in the message are left out.
+#
+# Run it by hand to pick the version step, or with "publish" to publish the current version again where it is
+# missing (for example after a registry outage). Every step skips what already exists, so a rerun is safe.
 name: Release
 
 on:
-  push:
-    tags: ['v*.*.*']
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version step
+        type: choice
+        options: [auto, patch, minor, major, publish]
+        default: auto
 
 permissions:
   contents: read
 
+# One release at a time; a run that waits behind another sees its release commit and starts from there.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  verify:
-    name: Verify
+  release:
+    name: Version and GitHub release
+    if: >-
+      github.repository == 'VectoDE/ID-Generator' && (github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    permissions:
+      contents: write # release commit, tag and GitHub release
+      pull-requests: read # labels that decide the version step
+    outputs:
+      release: ${{ steps.prepare.outputs.release }}
+      tag: ${{ steps.prepare.outputs.tag }}
     steps:
       - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
+          ref: main
           fetch-depth: 0
-      - name: Tag points to a commit on main
-        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
-      - name: Tag matches the version in package.json
-        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+          # The release commit is pushed with this deploy key, the only actor besides admins that may bypass the
+          # main ruleset. Its pushes start CI again, which finds nothing new to release.
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+          persist-credentials: true
+      - name: Skip when main moved on
+        if: github.event_name == 'workflow_run'
+        id: current
+        env:
+          TESTED: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ "$(git rev-parse HEAD)" = "$TESTED" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "main is at $(git rev-parse --short HEAD), CI ran for ${TESTED:0:7}; the newer commit releases both."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.current.outputs.current != 'false'
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci --ignore-scripts
-      - run: npm run check
-
-  github:
-    name: GitHub release
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Create the release
+      - name: Pick the version
+        id: prepare
+        if: steps.current.outputs.current != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
+          BUMP: ${{ inputs.bump || 'auto' }}
+          RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
         run: |
+          if [ "$BUMP" = "publish" ]; then
+            version="$(node -p "require('./package.json').version")"
+            git rev-parse "v$version" > /dev/null
+            git tag --list "v$version" --format='%(contents)' > "$RELEASE_NOTES"
+            printf 'release=true\nversion=%s\ntag=v%s\n' "$version" "$version" | tee -a "$GITHUB_OUTPUT"
+          else
+            RELEASE_BUMP="$BUMP" node scripts/prepare-release.mjs
+          fi
+      - name: Check the release
+        if: steps.prepare.outputs.release == 'true' && inputs.bump != 'publish'
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+      - name: Commit and tag
+        if: steps.prepare.outputs.release == 'true' && inputs.bump != 'publish'
+        env:
+          TAG: ${{ steps.prepare.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --quiet --all --message "Release $TAG" --message "[skip release]"
+          git tag --annotate "$TAG" --file "$RUNNER_TEMP/release-notes.md" --cleanup=verbatim
+          git push --atomic origin HEAD:main "$TAG"
+      - name: GitHub release
+        if: steps.prepare.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.prepare.outputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "$TAG already has a GitHub release."
+            exit 0
+          fi
           prerelease=""
-          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME" $prerelease
+          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/release-notes.md" $prerelease
 
   npm:
     name: Publish to npm
-    needs: verify
-    # Set the repository variable NPM_TRUSTED_PUBLISHING to "true" after linking this workflow on npmjs.com.
-    if: vars.NPM_TRUSTED_PUBLISHING == 'true'
+    needs: release
+    if: needs.release.outputs.release == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm
@@ -72,6 +131,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.release.outputs.tag }}
           persist-credentials: false
       # Node 24 ships npm 11, which Trusted Publishing needs.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -81,7 +141,53 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Publish
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
         run: |
-          tag=latest
-          case "$GITHUB_REF_NAME" in *-*) tag=next ;; esac
-          npm publish --provenance --access public --tag "$tag"
+          name="$(node -p "require('./package.json').name")"
+          if [ -n "$(npm view "$name@${TAG#v}" version 2> /dev/null)" ]; then
+            echo "$name@${TAG#v} is already on npm."
+            exit 0
+          fi
+          dist_tag=latest
+          case "$TAG" in *-*) dist_tag=next ;; esac
+          npm publish --provenance --access public --tag "$dist_tag"
+
+  github-packages:
+    name: Publish to GitHub Packages
+    needs: release
+    if: needs.release.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write # shows the package on the repository page
+    steps:
+      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: '@vectode'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          if [ -n "$(npm view "$name@${TAG#v}" version --registry https://npm.pkg.github.com 2> /dev/null)" ]; then
+            echo "$name@${TAG#v} is already on GitHub Packages."
+            exit 0
+          fi
+          dist_tag=latest
+          case "$TAG" in *-*) dist_tag=next ;; esac
+          # GitHub Packages does not take npm provenance statements.
+          npm publish --registry https://npm.pkg.github.com --provenance=false --tag "$dist_tag"
