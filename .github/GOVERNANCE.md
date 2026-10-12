@@ -15,7 +15,10 @@ request that adds them to this file and to [CODEOWNERS](CODEOWNERS).
 
 ## Decisions
 
-- Bug fixes and small changes: a pull request that passes every required check and is approved by a maintainer.
+- Bug fixes and small changes: a pull request that passes every required check. Pull requests from contributors
+  need a maintainer's approval. While there is one maintainer, their own pull requests are merged once every check
+  passes; when a second maintainer joins, the main ruleset will require an approval by someone other than the author
+  for every pull request.
 - New public API or breaking changes: discussed in an issue first, then decided by the maintainers. The reasoning is
   written down in the issue, so later readers can see why.
 - Security reports follow the [security policy](SECURITY.md) and are handled privately until a fix is released.
