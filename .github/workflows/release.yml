@@ -1,15 +1,17 @@
-# Every push to main whose CI passes becomes a release: the version is raised (scripts/prepare-release.mjs), the
-# release commit and tag go to main, and the package is published as a GitHub release, to npm through Trusted
-# Publishing with provenance, and to GitHub Packages. Commits with "[skip release]" in the message are left out.
+# Every push to main becomes a release: the version is raised (scripts/prepare-release.mjs), the release commit and
+# tag go to main, and the package is published as a GitHub release, to npm through Trusted Publishing with
+# provenance, and to GitHub Packages. Commits with "[skip release]" in the message are left out, and so is the
+# release commit itself.
+#
+# The deploy key that may push past the main ruleset is only handed to the "Commit and tag" job, which runs no
+# dependency code: it applies the version change prepared and checked in an earlier job without the key.
 #
 # Run it by hand to pick the version step, or with "publish" to publish the current version again where it is
 # missing (for example after a registry outage). Every step skips what already exists, so a rerun is safe.
 name: Release
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -28,97 +30,145 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: Version and GitHub release
-    if: >-
-      github.repository == 'VectoDE/ID-Generator' && (github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+  prepare:
+    name: Pick the version and check
+    if: github.repository == 'VectoDE/ID-Generator'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write # release commit, tag and GitHub release
+      contents: read
       pull-requests: read # labels that decide the version step
     outputs:
-      release: ${{ steps.prepare.outputs.release }}
-      tag: ${{ steps.prepare.outputs.tag }}
+      release: ${{ steps.version.outputs.release }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
           fetch-depth: 0
-          # The release commit is pushed with this deploy key, the only actor besides admins that may bypass the
-          # main ruleset. Its pushes start CI again, which finds nothing new to release.
-          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
-          persist-credentials: true
+          persist-credentials: false
       - name: Skip when main moved on
-        if: github.event_name == 'workflow_run'
         id: current
-        env:
-          TESTED: ${{ github.event.workflow_run.head_sha }}
         run: |
-          if [ "$(git rev-parse HEAD)" = "$TESTED" ]; then
+          main="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$main" = "$GITHUB_SHA" ]; then
             echo "current=true" >> "$GITHUB_OUTPUT"
           else
-            echo "main is at $(git rev-parse --short HEAD), CI ran for ${TESTED:0:7}; the newer commit releases both."
+            echo "main is at ${main:0:7}, this run is for ${GITHUB_SHA:0:7}; the newer run releases both."
             echo "current=false" >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.current.outputs.current != 'false'
+        if: steps.current.outputs.current == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Pick the version
-        id: prepare
-        if: steps.current.outputs.current != 'false'
+        id: version
+        if: steps.current.outputs.current == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           BUMP: ${{ inputs.bump || 'auto' }}
-          RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
+          RELEASE_NOTES: ${{ runner.temp }}/release/notes.md
         run: |
+          mkdir -p "$RUNNER_TEMP/release"
           if [ "$BUMP" = "publish" ]; then
             version="$(node -p "require('./package.json').version")"
-            git rev-parse "v$version" > /dev/null
+            git rev-parse --verify --quiet "refs/tags/v$version" > /dev/null
             git tag --list "v$version" --format='%(contents)' > "$RELEASE_NOTES"
             printf 'release=true\nversion=%s\ntag=v%s\n' "$version" "$version" | tee -a "$GITHUB_OUTPUT"
           else
             RELEASE_BUMP="$BUMP" node scripts/prepare-release.mjs
           fi
+          git diff --binary > "$RUNNER_TEMP/release/version.patch"
+      # Saved before any dependency code runs, so nothing installed below can change what gets committed.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.version.outputs.release == 'true'
+        with:
+          name: release
+          path: ${{ runner.temp }}/release/
+          retention-days: 7
       - name: Check the release
-        if: steps.prepare.outputs.release == 'true' && inputs.bump != 'publish'
+        if: steps.version.outputs.release == 'true' && inputs.bump != 'publish'
         run: |
           npm ci --ignore-scripts
           npm run check
+
+  commit:
+    name: Commit and tag
+    needs: prepare
+    if: needs.prepare.outputs.release == 'true' && inputs.bump != 'publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # the push uses the deploy key, not this token
+    steps:
+      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The deploy key is the only actor that may push past the main ruleset. Its push starts this workflow again,
+          # which finds nothing new to release.
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+          persist-credentials: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: ${{ runner.temp }}/release
       - name: Commit and tag
-        if: steps.prepare.outputs.release == 'true' && inputs.bump != 'publish'
         env:
-          TAG: ${{ steps.prepare.outputs.tag }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
+          patch="$RUNNER_TEMP/release/version.patch"
+          changed="$(git apply --numstat "$patch" | cut -f3 | sort | tr '\n' ' ')"
+          if [ "$changed" != "CHANGELOG.md package-lock.json package.json " ]; then
+            echo "::error::The version change touches unexpected files: $changed"
+            exit 1
+          fi
+          git apply "$patch"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit --quiet --all --message "Release $TAG" --message "[skip release]"
-          git tag --annotate "$TAG" --file "$RUNNER_TEMP/release-notes.md" --cleanup=verbatim
+          git tag --annotate "$TAG" --file "$RUNNER_TEMP/release/notes.md" --cleanup=verbatim
           git push --atomic origin HEAD:main "$TAG"
-      - name: GitHub release
-        if: steps.prepare.outputs.release == 'true'
+
+  github:
+    name: GitHub release
+    needs: [prepare, commit]
+    if: always() && needs.prepare.outputs.release == 'true' && contains(fromJSON('["success", "skipped"]'), needs.commit.result)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # GitHub release
+    steps:
+      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: ${{ runner.temp }}/release
+      - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.prepare.outputs.tag }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
-          if gh release view "$TAG" > /dev/null 2>&1; then
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "$TAG already has a GitHub release."
             exit 0
           fi
           prerelease=""
           case "$TAG" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/release-notes.md" $prerelease
+          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" \
+            --notes-file "$RUNNER_TEMP/release/notes.md" $prerelease
 
   npm:
     name: Publish to npm
-    needs: release
-    if: needs.release.outputs.release == 'true'
+    needs: [prepare, commit]
+    if: always() && needs.prepare.outputs.release == 'true' && contains(fromJSON('["success", "skipped"]'), needs.commit.result)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm
@@ -131,7 +181,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.release.outputs.tag }}
+          ref: ${{ needs.prepare.outputs.tag }}
           persist-credentials: false
       # Node 24 ships npm 11, which Trusted Publishing needs.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -142,7 +192,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Publish
         env:
-          TAG: ${{ needs.release.outputs.tag }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
           name="$(node -p "require('./package.json').name")"
           if [ -n "$(npm view "$name@${TAG#v}" version 2> /dev/null)" ]; then
@@ -155,8 +205,8 @@ jobs:
 
   github-packages:
     name: Publish to GitHub Packages
-    needs: release
-    if: needs.release.outputs.release == 'true'
+    needs: [prepare, commit]
+    if: always() && needs.prepare.outputs.release == 'true' && contains(fromJSON('["success", "skipped"]'), needs.commit.result)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -168,7 +218,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.release.outputs.tag }}
+          ref: ${{ needs.prepare.outputs.tag }}
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -180,7 +230,7 @@ jobs:
       - name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release.outputs.tag }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
           name="$(node -p "require('./package.json').name")"
           if [ -n "$(npm view "$name@${TAG#v}" version --registry https://npm.pkg.github.com 2> /dev/null)" ]; then
