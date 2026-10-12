@@ -37,7 +37,7 @@ concurrency:
 jobs:
   prepare:
     name: Pick the version and check
-    if: github.repository == 'VectoDE/ID-Generator'
+    if: github.repository == 'VectoDE/ID-Generator' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -86,6 +86,11 @@ jobs:
               if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] ||
                 ! git rev-parse --verify --quiet "refs/tags/$tag" > /dev/null; then
                 echo "::error::$tag is not an existing version tag."
+                exit 1
+              fi
+              # Only released code: the tag must point to a commit that went through review onto main.
+              if ! git merge-base --is-ancestor "$tag^{commit}" "$GITHUB_SHA"; then
+                echo "::error::$tag does not point to a commit on main."
                 exit 1
               fi
               git tag --list "$tag" --format='%(contents)' > "$RELEASE_NOTES"

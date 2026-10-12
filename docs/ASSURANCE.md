@@ -43,7 +43,8 @@ used as secrets; the README and the security policy say so.
   only used after the whole ID is valid.
 - **Least privilege:** the core needs no file or network access; file access is only in the separate `node` entry.
   CI jobs get read-only tokens unless a step needs more, and the deploy key that pushes release commits is only
-  available to a job that runs no dependency code.
+  available to a job that runs no dependency code. Version tags can only be created by that workflow, and it only
+  publishes tags that point to commits on the protected `main` branch.
 - **Complete mediation:** every public function validates its arguments at runtime, also for callers without
   TypeScript.
 - **Open design:** all code, tests and the release process are public; security does not rely on hidden details.

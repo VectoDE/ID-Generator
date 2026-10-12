@@ -23,7 +23,8 @@ request that adds them to this file and to [CODEOWNERS](CODEOWNERS).
 ## Releases
 
 Every change merged into `main` is released by the [release workflow](workflows/release.yml), which publishes to
-GitHub, npm and GitHub Packages with signed provenance. Nobody publishes from a laptop. See "Releases" in the
+GitHub, npm and GitHub Packages with signed provenance. Nobody publishes from a laptop, and version tags can only
+be created by that workflow: a tag ruleset blocks everyone else, and the workflow only publishes tags on `main`. See "Releases" in the
 [contributing guide](CONTRIBUTING.md#releases).
 
 ## Continuity
