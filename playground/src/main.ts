@@ -63,7 +63,7 @@ const ui = {
   formats: byId('formats', HTMLTableSectionElement),
   readInput: byId('read-input', HTMLInputElement),
   readResult: byId('read-result', HTMLDivElement),
-  status: byId('status', HTMLParagraphElement),
+  status: byId('status', HTMLOutputElement),
 };
 
 const store = new MemorySequenceStore();

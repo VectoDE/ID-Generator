@@ -5,9 +5,21 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-10-12
+
+First version on npm, as `@vectode/id-generator`. The library and CLI behave exactly as in 2.0.0.
+
+### Changed
+
+- The playground announces results through an `<output>` element, which screen readers support more widely than
+  `role="status"` on a paragraph.
+- The OpenSSF Scorecard workflow asks for `contents: read` instead of `read-all`.
+- Releases publish to npm from GitHub Actions through Trusted Publishing, with provenance and without an npm token.
+- README badges for the npm version and the SonarQube Cloud quality gate.
+
 ## [2.0.0] - 2026-10-12
 
-A rewrite. Published to npm for the first time, as `@vectode/id-generator`. See "Upgrading from 1.x" in the README.
+A rewrite, released on GitHub only. See "Upgrading from 1.x" in the README.
 
 ### Added
 
@@ -43,5 +55,6 @@ A rewrite. Published to npm for the first time, as `@vectode/id-generator`. See 
 
 First version, not published to npm.
 
-[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/VectoDE/ID-Generator/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/VectoDE/ID-Generator/releases/tag/v2.0.0

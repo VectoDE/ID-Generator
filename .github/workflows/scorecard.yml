@@ -7,7 +7,8 @@ on:
     - cron: '17 5 * * 2'
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   analysis:
@@ -15,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      contents: read
+      actions: read
       security-events: write
       id-token: write
     steps:

@@ -1,8 +1,9 @@
 # ID Generator
 
 [![CI](https://github.com/VectoDE/ID-Generator/actions/workflows/ci.yml/badge.svg)](https://github.com/VectoDE/ID-Generator/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/VectoDE/ID-Generator?label=release)](https://github.com/VectoDE/ID-Generator/releases/latest)
+[![npm](https://img.shields.io/npm/v/@vectode/id-generator)](https://www.npmjs.com/package/@vectode/id-generator)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/VectoDE/ID-Generator/badge)](https://scorecard.dev/viewer/?uri=github.com/VectoDE/ID-Generator)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=VectoDE_ID-Generator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VectoDE_ID-Generator)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 
 IDs that follow your own pattern, like `INV-2026-00042` or `HKNET#1-2/1234-2026`, plus UUID v4 and v7, ULID,
