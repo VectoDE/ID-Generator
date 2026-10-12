@@ -1,0 +1,47 @@
+# Changelog
+
+All notable changes to this project are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+## [2.0.0] - 2026-10-12
+
+A rewrite. Published to npm for the first time, as `@vectode/id-generator`. See "Upgrading from 1.x" in the README.
+
+### Added
+
+- Pattern generator with built-in tokens `{seq}`, `{random}`, `{date}`, `{year}`, `{month}`, `{day}`, `{timestamp}`,
+  `{uuid}`, `{uuid7}`, `{ulid}` and `{nanoid}`, value tokens with defaults, normalizers and validators, custom
+  computed tokens, `transform` and `maxLength`.
+- `preview()` that shows every token's value or error without using up a sequence number.
+- `parse()` and `matches()` to read values back out of an ID.
+- Presets `club` (the 1.x format), `invoice` and `order`.
+- Standard formats: UUID v4, UUID v7 (monotonic, RFC 9562), ULID (monotonic), NanoID-style IDs with ready-made
+  alphabets, Snowflake IDs with a configurable layout, and `collisionProbability()`.
+- `inspectId()`, `isUuid()`, `isUlid()`, `uuidv7Timestamp()`, `ulidTimestamp()` and `parseSnowflake()`.
+- Pluggable sequence stores: `MemorySequenceStore`, and `FileSequenceStore` (from `@vectode/id-generator/node`) with a
+  lock file and atomic writes for several processes.
+- Error classes with machine-readable codes.
+- Command line `id-generator` / `idgen` with text, JSON and CSV output, counters that persist across runs, presets,
+  `--preview`, `parse` and `inspect`.
+- Browser playground on GitHub Pages and benchmarks (`npm run bench`).
+- TypeScript types, ESM and CommonJS builds; the core runs in browsers, Deno and Bun.
+
+### Changed
+
+- `generate()` is asynchronous, so stores can live in a database.
+- A sequence number is only used when every other token of the ID is valid.
+- Node.js 22 or newer is required.
+
+### Removed
+
+- `createIDGenerator`, `generateBatch`, the `{sequence}` token and the CLI flags `--config`, `--club`, `--role`,
+  `--area` and `--year`. Their replacements are listed in the README.
+
+## [1.0.0] - 2024
+
+First version, not published to npm.
+
+[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/VectoDE/ID-Generator/releases/tag/v2.0.0

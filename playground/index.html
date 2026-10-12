@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ID Generator playground</title>
+    <meta
+      name="description"
+      content="Try @vectode/id-generator in your browser: build IDs from your own pattern, compare UUID v4, UUID v7, ULID, NanoID and Snowflake, and read IDs back."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232445c9'/%3E%3Cpath d='M9 9v14M15 9h3a7 7 0 0 1 0 14h-3z' stroke='white' stroke-width='3' fill='none'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="masthead">
+      <p class="brand">@vectode/id-generator</p>
+      <h1>Build an ID, see where every character comes from.</h1>
+      <p class="lede">
+        Everything on this page runs in your browser with the published library. Nothing is sent anywhere, and counters
+        start over when you reload.
+      </p>
+      <nav aria-label="Project links">
+        <a href="https://github.com/VectoDE/ID-Generator">Source on GitHub</a>
+        <a href="https://www.npmjs.com/package/@vectode/id-generator">Package on npm</a>
+        <a href="https://github.com/VectoDE/ID-Generator#readme">Documentation</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="pattern" aria-labelledby="pattern-heading">
+        <h2 id="pattern-heading">Your pattern</h2>
+        <div class="pattern-setup">
+          <div class="field">
+            <label for="preset">Start from</label>
+            <select id="preset">
+              <option value="invoice">Invoice numbers</option>
+              <option value="club">Club membership</option>
+              <option value="order">Order numbers</option>
+              <option value="custom">Empty pattern</option>
+            </select>
+          </div>
+          <div class="field field-wide">
+            <label for="pattern">Pattern</label>
+            <input
+              id="pattern"
+              type="text"
+              spellcheck="false"
+              autocomplete="off"
+              aria-describedby="pattern-help pattern-error"
+            />
+            <p id="pattern-help" class="hint">
+              Tokens go in braces, like <code>{year}</code> or <code>{seq:5}</code>. Names the library does not know
+              become fields below. The same token twice gives the same value. Write <code>{{</code> for a literal brace.
+            </p>
+            <p id="pattern-error" class="error" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <fieldset id="values" class="values" hidden>
+          <legend>Values</legend>
+          <div id="value-fields" class="value-fields"></div>
+        </fieldset>
+
+        <div class="specimen">
+          <p class="specimen-label">Next ID</p>
+          <!-- The labelled specimen is visual only; screen readers get the plain ID from #id-text. -->
+          <div id="id-display" class="id-display" aria-hidden="true"></div>
+          <p id="id-text" class="visually-hidden"></p>
+          <div class="actions">
+            <button id="generate" type="button" class="primary">Generate</button>
+            <button id="copy-next" type="button">Copy</button>
+            <button id="reset" type="button" class="quiet">Reset counter</button>
+          </div>
+        </div>
+
+        <section class="history" aria-labelledby="history-heading">
+          <h3 id="history-heading">Generated so far</h3>
+          <p id="history-empty" class="hint">Nothing generated yet. The preview above never uses up a number.</p>
+          <ul id="history" class="history-list"></ul>
+        </section>
+      </section>
+
+      <section class="formats" aria-labelledby="formats-heading">
+        <h2 id="formats-heading">Standard formats</h2>
+        <p class="section-intro">
+          Same library, no pattern needed. Time-ordered formats sort by creation time, which keeps database indexes
+          compact. Random formats are the ones to use where nobody should guess the next value.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Format</th>
+                <th scope="col">Example</th>
+                <th scope="col">Length</th>
+                <th scope="col">Sorts by time</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="formats"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="read" aria-labelledby="read-heading">
+        <h2 id="read-heading">Read an ID</h2>
+        <div class="field field-wide">
+          <label for="read-input">Paste an ID</label>
+          <input id="read-input" type="text" spellcheck="false" autocomplete="off" aria-describedby="read-help" />
+          <p id="read-help" class="hint">
+            UUIDs and ULIDs show their version and creation time. IDs that fit your pattern above are split into their
+            values.
+          </p>
+        </div>
+        <div id="read-result" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Install with <code>npm install @vectode/id-generator</code>. BSD 3-Clause License.</p>
+      <p id="status" class="visually-hidden" role="status"></p>
+    </footer>
+  </body>
+</html>

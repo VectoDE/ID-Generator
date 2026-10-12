@@ -1,36 +1,98 @@
 {
-  "name": "id-generator",
-  "version": "1.0.0",
-  "description": "Configurable enterprise-grade identifier generation toolkit for Node.js.",
-  "type": "commonjs",
-  "main": "index.js",
-  "bin": {
-    "id-generator": "./bin/id-generator.js"
-  },
-  "files": [
-    "bin",
-    "src",
-    "examples",
-    "index.js",
-    "README.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "test": "node --test",
-    "start": "node ./bin/id-generator.js",
-    "example": "node ./examples/basicUsage.js",
-    "check": "find src -name '*.js' -print0 | xargs -0 -n1 node --check"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "name": "@vectode/id-generator",
+  "version": "2.0.0",
+  "description": "Identifiers for Node.js, browsers, Deno and Bun: your own patterns with persistent sequences, plus UUID v4/v7, ULID, NanoID and Snowflake. No runtime dependencies.",
   "keywords": [
     "id",
     "identifier",
-    "generator",
-    "enterprise",
-    "toolkit"
+    "id-generator",
+    "pattern",
+    "sequence",
+    "uuid",
+    "uuidv7",
+    "ulid",
+    "nanoid",
+    "snowflake",
+    "cli"
   ],
-  "author": "",
-  "license": "BSD-3-Clause"
+  "homepage": "https://vectode.github.io/ID-Generator/",
+  "bugs": {
+    "url": "https://github.com/VectoDE/ID-Generator/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VectoDE/ID-Generator.git"
+  },
+  "license": "BSD-3-Clause",
+  "author": "Vecto (https://github.com/VectoDE)",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./node": {
+      "import": "./dist/node.mjs",
+      "require": "./dist/node.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "typesVersions": {
+    "*": {
+      "node": [
+        "./dist/node.d.cts"
+      ]
+    }
+  },
+  "bin": {
+    "id-generator": "dist/cli.mjs",
+    "idgen": "dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsdown",
+    "check:package": "publint --strict && attw --pack .",
+    "build:playground": "node scripts/build-playground.mjs",
+    "dev:playground": "node scripts/build-playground.mjs --serve",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "bench": "npm run build && node bench/run.mjs",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build && npm run check:package",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.0.4",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "publint": "^0.3.25",
+    "tsdown": "^0.23.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.4"
+  }
 }
