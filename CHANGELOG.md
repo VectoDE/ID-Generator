@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format follows
 - Commits in pull requests must be signed off under the Developer Certificate of Origin, checked by a new workflow.
 - Each GitHub release also carries a CycloneDX software bill of materials.
 - Version tags are protected: only the release workflow can create them, and it only publishes commits on `main`.
+- Release commits and version tags are signed (SSH), so GitHub shows them as verified.
 - The security policy states how long versions get security updates and how secrets are handled.
 
 ### Added

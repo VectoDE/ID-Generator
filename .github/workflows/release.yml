@@ -143,6 +143,9 @@ jobs:
         id: push
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
+          # SSH key registered as a signing key on the maintainer's GitHub account, so release commits and tags show
+          # as verified. The public half is in .github/allowed_signers.
+          SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
         run: |
           patch="$RUNNER_TEMP/release/version.patch"
           changed="$(git apply --numstat "$patch" | cut -f3 | sort | tr '\n' ' ')"
@@ -151,10 +154,17 @@ jobs:
             exit 1
           fi
           git apply "$patch"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit --quiet --all --message "Release $TAG" --message "[skip release]"
-          git tag --annotate "$TAG" --file "$RUNNER_TEMP/release/notes.md" --cleanup=verbatim
+          key="$RUNNER_TEMP/signing-key"
+          (umask 077 && printf '%s\n' "$SIGNING_KEY" > "$key")
+          git config user.name "VectoDE"
+          git config user.email "157636760+VectoDE@users.noreply.github.com"
+          git config gpg.format ssh
+          git config user.signingkey "$key"
+          git config gpg.ssh.allowedSignersFile .github/allowed_signers
+          git commit --quiet --all --gpg-sign --message "Release $TAG" --message "[skip release]"
+          git tag --sign "$TAG" --file "$RUNNER_TEMP/release/notes.md" --cleanup=verbatim
+          git tag --verify "$TAG"
+          rm -f "$key"
           git push --atomic origin HEAD:main "refs/tags/$TAG"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 

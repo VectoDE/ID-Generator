@@ -64,6 +64,13 @@ a laptop. 2.0.1, the first npm version, was published by hand and has no provena
   gh attestation verify vectode-id-generator-<version>.tgz --repo VectoDE/ID-Generator
   ```
 
+- **Git tags:** release commits and version tags from 2.0.3 on are signed with the release SSH key, whose public
+  half is in [allowed_signers](allowed_signers). GitHub shows them as verified; in a clone, check a tag with:
+
+  ```bash
+  git -c gpg.ssh.allowedSignersFile=.github/allowed_signers tag --verify v<version>
+  ```
+
 ## Vulnerabilities in dependencies
 
 The package has no runtime dependencies, so a vulnerability in a dependency can only affect development and CI.
@@ -76,10 +83,12 @@ release notes. There are no such statements today.
 
 - The project keeps as few secrets as possible. npm publishing uses OIDC Trusted Publishing, and workflows use the
   short-lived `GITHUB_TOKEN`; neither is stored anywhere.
-- The only stored secret is `RELEASE_DEPLOY_KEY`, an SSH deploy key for the release commit. It lives only in GitHub
-  Actions secrets, is used by one job that runs no dependency code, and no person keeps a copy.
+- The only stored secrets are two SSH keys for the release commit: `RELEASE_DEPLOY_KEY` pushes it past the main
+  ruleset, and `RELEASE_SIGNING_KEY` signs the commit and the version tag. They live only in GitHub Actions secrets,
+  are used by one job that runs no dependency code, and no person keeps a copy.
 - Secrets are never committed, logged or passed on the command line. gitleaks in CI and GitHub secret scanning with
   push protection block leaks.
 - Secrets are rotated once a year, when a maintainer with access leaves, and immediately on any suspicion of
-  exposure: generate a new key, replace the deploy key and the secret, then delete the old key.
+  exposure: generate a new key, replace the deploy key or signing key and the secret (and `allowed_signers` for the
+  signing key), then delete the old key.
 - Access to secrets is listed in the [governance](GOVERNANCE.md#access-to-sensitive-resources) document.
