@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { randomInt, randomUUID } from 'node:crypto';
 import { link, mkdir, open, readFile, rename, rm, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';

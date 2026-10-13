@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Property-based tests: random inputs against invariants, so parsers and formats are fuzzed on every test run.
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';

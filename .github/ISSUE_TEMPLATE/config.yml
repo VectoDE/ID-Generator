@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability

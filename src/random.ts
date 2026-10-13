@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { ConfigurationError, IdGeneratorError, assertInteger } from './errors.js';
 
 // getRandomValues fills at most 65536 bytes per call (Web Crypto limit).

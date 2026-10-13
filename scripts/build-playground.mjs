@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Bundles the playground into playground/dist. With --serve it rebuilds on change and serves on http://localhost:5173.
 import { copyFile, mkdir, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -9,7 +13,10 @@ const serve = process.argv.includes('--serve');
 
 await rm(outdir, { recursive: true, force: true });
 await mkdir(outdir, { recursive: true });
-await Promise.all(['index.html', 'styles.css'].map((file) => copyFile(`${root}${file}`, `${outdir}/${file}`)));
+// _headers carries the security headers for Cloudflare Pages.
+await Promise.all(
+  ['index.html', 'styles.css', '_headers'].map((file) => copyFile(`${root}${file}`, `${outdir}/${file}`))
+);
 
 const options = {
   entryPoints: [`${root}src/main.ts`],

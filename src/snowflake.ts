@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { ConfigurationError, IdGeneratorError, ValidationError, assertInteger } from './errors.js';
 
 /** Default epoch: 2024-01-01T00:00:00Z. 41 bits of milliseconds last until 2093. */

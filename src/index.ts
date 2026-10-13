@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 export { ConfigurationError, IdGeneratorError, ValidationError, type IdGeneratorErrorCode } from './errors.js';
 export { inspectId, type InspectResult } from './inspect.js';
 export { alphabets, collisionProbability, customAlphabet, nanoid, type CollisionOptions } from './nanoid.js';

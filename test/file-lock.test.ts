@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Races between processes sharing a FileSequenceStore, replayed by hooking into the file system calls.
 import * as fs from 'node:fs/promises';
 import { mkdtemp, readdir, readFile, rm, utimes, writeFile } from 'node:fs/promises';

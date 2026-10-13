@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import sonarjs from 'eslint-plugin-sonarjs';

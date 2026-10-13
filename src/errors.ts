@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /** Machine-readable reason attached to every error this package throws. */
 export type IdGeneratorErrorCode =
   | 'CRYPTO_UNAVAILABLE'

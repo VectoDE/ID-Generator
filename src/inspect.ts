@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { isUlid, ulidTimestamp } from './ulid.js';
 import { MAX_UUID, NIL_UUID, isUuid, uuidVersion, uuidv7Timestamp } from './uuid.js';
 

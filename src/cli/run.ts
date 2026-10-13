@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { resolve } from 'node:path';
 import { parseArgs, type ParseArgsConfig } from 'node:util';
 import { ConfigurationError, IdGeneratorError } from '../errors.js';

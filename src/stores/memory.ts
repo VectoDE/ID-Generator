@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { IdGeneratorError, assertInteger } from '../errors.js';
 import type { SequenceStore, SequenceStoreOptions } from './types.js';
 

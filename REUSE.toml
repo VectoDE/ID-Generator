@@ -1,0 +1,20 @@
+# Licensing of the files that cannot carry a comment header: documentation, JSON, lockfiles and tool settings.
+# Every source file names its license and copyright in its own SPDX header. CI checks this with `reuse lint`.
+version = 1
+
+[[annotations]]
+path = [
+  "**/*.md",
+  "**/*.json",
+  ".editorconfig",
+  ".gitattributes",
+  ".gitignore",
+  ".npmrc",
+  ".nvmrc",
+  ".prettierignore",
+  ".prettierrc",
+  ".github/CODEOWNERS",
+  ".github/allowed_signers",
+]
+SPDX-FileCopyrightText = "2024 Vecto <https://github.com/VectoDE>"
+SPDX-License-Identifier = "BSD-3-Clause"
