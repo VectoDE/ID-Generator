@@ -14,8 +14,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
-- The playground moved to Cloudflare Pages (https://id-generator.pages.dev/), which sends a strict Content Security Policy and other
-  security headers. The old GitHub Pages address forwards there.
+- The playground moved to Cloudflare Pages (https://vectode-id-generator.pages.dev/), which sends a strict Content
+  Security Policy and other security headers. The old GitHub Pages address forwards there.
 
 ## [2.0.3] - 2026-10-12
 

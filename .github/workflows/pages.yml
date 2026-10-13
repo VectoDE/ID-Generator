@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-# The playground lives on Cloudflare Pages (https://id-generator.pages.dev/), which sends the security headers from
-# playground/_headers. GitHub Pages keeps the old address working with a page that forwards there.
+# The playground lives on Cloudflare Pages (https://vectode-id-generator.pages.dev/), which sends the security
+# headers from playground/_headers. GitHub Pages keeps the old address working with a page that forwards there.
 name: Playground redirect
 
 on:
