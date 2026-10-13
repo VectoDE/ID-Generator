@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-13
+
 ### Added
 
 - Every file states its copyright holder and license in an SPDX header or in `REUSE.toml`; CI checks this with the
@@ -115,7 +117,8 @@ A rewrite, released on GitHub only. See "Upgrading from 1.x" in the README.
 
 First version, not published to npm.
 
-[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.0.3...HEAD
+[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/VectoDE/ID-Generator/compare/v2.0.3...v2.1.0
 [2.0.3]: https://github.com/VectoDE/ID-Generator/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/VectoDE/ID-Generator/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/VectoDE/ID-Generator/compare/v2.0.0...v2.0.1

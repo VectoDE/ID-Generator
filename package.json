@@ -1,6 +1,6 @@
 {
   "name": "@vectode/id-generator",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "Identifiers for Node.js, browsers, Deno and Bun: your own patterns with persistent sequences, plus UUID v4/v7, ULID, NanoID and Snowflake. No runtime dependencies.",
   "keywords": [
     "id",
