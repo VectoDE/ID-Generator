@@ -5,6 +5,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Every file states its copyright holder and license in an SPDX header or in `REUSE.toml`; CI checks this with the
+  REUSE tool.
+- CI builds the npm package twice from separate clones and fails unless both tarballs are identical.
+- The contributing guide has a checklist that every review goes through.
+
+### Changed
+
+- The playground moved to Cloudflare Pages (https://vectode-id-generator.pages.dev/), which sends a strict Content
+  Security Policy and other security headers. The old GitHub Pages address forwards there.
+
 ## [2.0.3] - 2026-10-12
 
 ### Security

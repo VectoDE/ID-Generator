@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { describe, expect, it, vi } from 'vitest';
 import { randomFromCharacters } from '../src/random.js';
 import { CROCKFORD_BASE32, createUlid, isUlid, ulid, ulidTimestamp } from '../src/ulid.js';

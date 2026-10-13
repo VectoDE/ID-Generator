@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /**
  * Where sequence counters live. Implement this to keep counters in Redis, a database or anywhere else; every method
  * may return a value or a promise.

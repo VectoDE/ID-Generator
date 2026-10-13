@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Prepares the next release from the commits on main since the last version tag: picks the version, updates
 // package.json, package-lock.json and CHANGELOG.md, and writes the release notes.
 //

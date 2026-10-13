@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { describe, expect, it, vi } from 'vitest';
 import { IdGeneratorError } from '../src/errors.js';
 import { createPatternGenerator, type PatternGeneratorOptions } from '../src/pattern/generator.js';

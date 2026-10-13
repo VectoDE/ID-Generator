@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { ConfigurationError, IdGeneratorError, ValidationError } from './errors.js';
 import { randomFromCharacters } from './random.js';
 

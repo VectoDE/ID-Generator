@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Runs the built core (dist/index.mjs) once per format. CI uses it to prove the package works on Node, Deno and Bun
 // without Node-only APIs: node scripts/smoke.mjs | deno run scripts/smoke.mjs | bun scripts/smoke.mjs
 import {

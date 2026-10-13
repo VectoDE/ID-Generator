@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import type { PatternGeneratorOptions } from './generator.js';
 
 export type PatternPreset = Required<Pick<PatternGeneratorOptions, 'pattern' | 'tokens'>> & {

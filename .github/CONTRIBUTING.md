@@ -78,6 +78,29 @@ CI enforces all of these; `npm run check` runs the same checks locally.
 - The package has no runtime dependencies. Keep it that way unless there is a strong reason.
 - CI must be green before review.
 
+## Code review
+
+Every change reaches `main` through a pull request, and only a maintainer merges it. The reviewer reads the whole diff
+and checks it against this list before approving:
+
+1. **Purpose.** The pull request says what it changes and why, and links the issue it closes. It does one thing.
+2. **Correctness.** The code does what the description says, including invalid arguments: they throw an
+   `IdGeneratorError` subclass with a `code` instead of returning a wrong ID.
+3. **Tests.** New behaviour and every fixed bug have a test that fails without the change. Coverage stays above the
+   thresholds.
+4. **Security.** Randomness comes from Web Crypto only, never `Math.random`; mapping random bytes to an alphabet has
+   no modulo bias; inputs are validated. Changes to these areas get a second look at `docs/ASSURANCE.md`, which must
+   still be true afterwards.
+5. **Dependencies.** No runtime dependency. A new development dependency is justified in the description and pinned.
+6. **Compatibility.** A change to the public API or to the format of generated IDs is either backwards compatible or
+   labelled `breaking-change` with migration notes.
+7. **Documentation.** TSDoc, README, `CHANGELOG.md` (under "Unreleased") and the playground match the change.
+8. **Style.** The checks enforce formatting and lint rules; the reviewer looks at names, comments that explain why, and
+   new files carrying the SPDX header.
+
+The reviewer leaves a comment for each point that fails and approves only when none is left. Changes by the maintainer
+go through the same checks, and CI runs them on every pull request.
+
 ## Releases
 
 Every change merged into `main` is released on its own: `.github/workflows/release.yml` checks it again, raises the
@@ -93,3 +116,7 @@ package as a GitHub release with a signed build attestation, to npm with provena
 ## License
 
 By contributing you agree that your contribution is licensed under the [BSD 3-Clause License](../LICENSE).
+
+Every file carries an [SPDX](https://spdx.dev/) header with the copyright holder and the license, or is covered by
+`REUSE.toml` when it cannot hold a comment. CI checks this with the [REUSE](https://reuse.software/) tool; run
+`uvx reuse lint` locally, and `uvx reuse annotate` adds the header to a new file.

@@ -11,7 +11,7 @@ IDs that follow your own pattern, like `INV-2026-00042` or `HKNET#1-2/1234-2026`
 NanoID-style IDs and Snowflake IDs. TypeScript, no runtime dependencies, and the core runs anywhere Web Crypto exists:
 Node.js, browsers, Deno, Bun and edge runtimes.
 
-[Try it in the browser](https://vectode.github.io/ID-Generator/)
+[Try it in the browser](https://vectode-id-generator.pages.dev/)
 
 ```ts
 import { createPatternGenerator } from '@vectode/id-generator';

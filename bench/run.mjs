@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Throughput of every generator and a uniqueness check, measured against the build in dist/.
 // Run with: npm run bench
 import { randomUUID } from 'node:crypto';

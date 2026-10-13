@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Vecto <https://github.com/VectoDE>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 import { describe, expect, it } from 'vitest';
 import { alphabets, collisionProbability, customAlphabet, nanoid } from '../src/nanoid.js';
 
