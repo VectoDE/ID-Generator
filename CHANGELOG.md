@@ -5,6 +5,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- `osv-scanner.toml` ignores GHSA-g3hv-75wg-m249 in minimatch 10.2.6 until 2027-02-18: only a major update fixes it,
+  and the copy is a devDependency that never sees untrusted patterns. The published package is not affected.
+
 ## [2.1.0] - 2026-10-13
 
 ### Added
