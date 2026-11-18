@@ -7,8 +7,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Security
 
-- `osv-scanner.toml` ignores GHSA-g3hv-75wg-m249 in minimatch 10.2.6 until 2027-02-18: only a major update fixes it,
-  and the copy is a devDependency that never sees untrusted patterns. The published package is not affected.
+- minimatch 11.0.9 replaces 10.2.6 through an npm override (GHSA-g3hv-75wg-m249); the lint tools that still declare
+  `^10` work with it. The published package is not affected.
 
 ## [2.1.0] - 2026-10-13
 
