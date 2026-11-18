@@ -5,6 +5,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- minimatch 11.0.9 replaces 10.2.6 through an npm override (GHSA-g3hv-75wg-m249); the lint tools that still declare
+  `^10` work with it. The published package is not affected.
+
 ## [2.1.0] - 2026-10-13
 
 ### Added
