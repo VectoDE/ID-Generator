@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-11-18
+
 ### Security
 
 - minimatch 11.0.9 replaces 10.2.6 through an npm override (GHSA-g3hv-75wg-m249); the lint tools that still declare
@@ -122,7 +124,8 @@ A rewrite, released on GitHub only. See "Upgrading from 1.x" in the README.
 
 First version, not published to npm.
 
-[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/VectoDE/ID-Generator/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/VectoDE/ID-Generator/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/VectoDE/ID-Generator/compare/v2.0.3...v2.1.0
 [2.0.3]: https://github.com/VectoDE/ID-Generator/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/VectoDE/ID-Generator/compare/v2.0.1...v2.0.2
